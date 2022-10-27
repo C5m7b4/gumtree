@@ -1,4 +1,4 @@
-import '@babel/polyfill';
-import '#root/server/startServer';
+import "@babel/polyfill";
+import "#root/server/startServer";
 
-console.log('api-gateway is working');
+console.log("api-gateway is working");
