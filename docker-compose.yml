@@ -1,0 +1,85 @@
+version: "3.8"
+
+networks:
+  mynet:
+
+volumes:
+  listings-data:
+  users-data:
+
+
+services:
+  api-gateway:
+    build: "./api-gateway"
+    depends_on:
+      - listings-service
+      - users-service
+    volumes:
+      - ./api-gateway:/opt/app
+    networks:
+      - mynet       
+    ports:
+      - 7000:7000  
+
+  listings-service:
+    build: "./listings-service"
+    depends_on:
+      - listings-service-db
+    volumes:
+      - ./listings-service:/opt/app
+    networks:
+      - mynet  
+    environment:
+      - DB_URI=mysql://user:password@listings-service-db/db?charset=UTF8      
+    ports:
+      - 7100:7100  
+
+  listings-service-db:
+    image: mysql  
+    env_file: ./env/listings-service-db.env
+    ports:
+      - '7200:3306'
+    volumes:
+      - listings-data:/var/lib/mysql/
+    networks:
+      - mynet
+
+
+  users-service:
+    build: "./users-service"
+    depends_on:
+      - users-service-db
+    volumes:
+      - ./users-service:/opt/app 
+    networks:
+      - mynet  
+    environment:
+      - DB_URI=mysql://user:password@users-service-db/db?charset=UTF8 
+    ports:
+      - 7101:7101        
+
+  users-service-db:
+    image: mysql   
+    env_file: ./env/users-service-db.env  
+    ports:
+      - '7201:3306'  
+    networks:
+      - mynet
+    volumes:
+      - users-data:/var/lib/mysql/ 
+
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - '7202:80'   
+    env_file: ./env/phpmyadmin.env  
+    depends_on:
+      - users-service-db
+      - listings-service-db
+    networks:
+      - mynet  
+    environment:
+      - PMA_ARBITRARY=1
+  
+
+
